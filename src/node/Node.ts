@@ -5,6 +5,7 @@ export abstract class NodeBase implements Node {
     protected readonly _flag?: Flag;
     protected readonly _structure: NodeStructure;
     protected readonly _superNode?: Node;
+    protected readonly _subNodes?: Array<SubNode>;
 
     constructor(name: string, cluster: Cluster, structure: NodeStructure, flag?: Flag, superNode?: Node) {
         this._name = name;
@@ -59,6 +60,10 @@ export abstract class NodeBase implements Node {
         return this._superNode;
     }
 
+    get subNodes(): Array<SubNode> | undefined {
+        return this._subNodes;
+    }
+
     get pos(): RoomPosition {
         return this.structure.pos;
     }
@@ -74,6 +79,8 @@ export abstract class NodeBase implements Node {
     isTopNode(): boolean {
         return this._superNode === undefined;
     }
+
+    abstract get type(): NodeType;
 }
 
 export abstract class TopNodeBase extends NodeBase {
@@ -92,6 +99,8 @@ export abstract class TopNodeBase extends NodeBase {
      * @protected
      */
     protected abstract reconstructUnits(): void;
+
+    protected abstract checkUnitSpawning(): void;
 
     get subNodes(): Array<SubNode> {
         return this._subNodes;

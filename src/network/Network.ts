@@ -1,7 +1,7 @@
 import { TravelerIniter } from "utils/Traveler";
 import { ErrorMapper } from "utils/ErrorMapper";
-import { initMemoryExt } from "../memory/MemoryExt";
 import { CentralClusterImpl } from "../cluster/central-cluster/CentralCluster";
+import { extensionInit } from "../extensions/ExtensionInit";
 
 // Network object
 export const network: Network = {
@@ -12,7 +12,7 @@ export const network: Network = {
      */
     init(): void {
         TravelerIniter.init();
-        initMemoryExt();
+        extensionInit()
     },
     /**
      * Automatically clean the non-existed creeps.
@@ -43,7 +43,7 @@ export const network: Network = {
     run(): () => void {
         return ErrorMapper.wrapLoop(() => {
             this.clean();
-            // reconstruct objects from memory
+            // reconstruct Cluster objects from memory
             this.reconstructClusters();
 
             // main loop

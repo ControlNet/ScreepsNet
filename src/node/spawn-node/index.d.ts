@@ -12,7 +12,13 @@ interface SpawnNode extends Node {
      * @param unit - The unit planned to be spawned.
      */
     spawn(unit: Unit): void;
+
+    readonly type: SpawnNodeType;
 }
+
+type SpawnNodeType = "SpawnNode";
+
+type SpawnNodeMemoryType = "SpawnNodeMemory";
 
 /**
  * The SpawnPlan is the memory structure indicating the plan of the SpawnNode

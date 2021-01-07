@@ -2,10 +2,12 @@ import { ClusterBase } from "../Cluster";
 import { DEVELOPING, EXPANDING, FINALIZING, FOUNDING } from "./CentralClusterStage";
 import { ClusterNodeImpl } from "../../node/cluster-node/ClusterNode";
 import { SpawnNodeImpl } from "../../node/spawn-node/SpawnNode";
-import { checkType, getByKey } from "../../utils/Others";
+import { checkNetObjType, getByKey } from "../../utils/HelperFunctions";
 import { SourceNodeImpl } from "../../node/source-node/SourceNode";
 import { ControllerNodeImpl } from "../../node/controller-node/ControllerNode";
-import { TopNodeImpls } from "../../node/NodeUtils";
+import _ from "lodash";
+import { CentralClusterMemoryType, CentralClusterType } from "./CentralClusterType";
+import { TopNodeTypes } from "../../node/NodeUtils";
 
 export class CentralClusterImpl extends ClusterBase implements CentralCluster {
     constructor(name: string, home: Room, fromMemory: boolean = true) {
@@ -72,7 +74,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             .forEach(this.add.node); // Assign the nodes to `this.node`.
 
         // filter directly managed nodes (top nodes)
-        this.topNodes = _.values(this.nodes).filter<TopNode>(checkType<TopNode>(...TopNodeImpls));
+        this.topNodes = _.values(this.nodes).filter<TopNode>(checkNetObjType<TopNode>(...TopNodeTypes));
     }
 
     /**
@@ -147,8 +149,8 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
         }
     }
 
-    get type(): string {
-        return "CentralCluster";
+    get type(): CentralClusterType {
+        return CentralClusterType;
     }
 
     static readonly build: Builder<CentralCluster> = {
@@ -179,7 +181,8 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
 
         Memory.set.cluster<ClusterMemory<CentralClusterMemoryComplement>>(this.name).as({
             name: this.name,
-            type: "CentralCluster",
+            type: this.type,
+            memoryType: CentralClusterMemoryType,
             homeRoomName: this.home.name,
             roomsNames: this.rooms.map(getName),
             nodesNames: _.keys(this.nodes),

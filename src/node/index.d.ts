@@ -53,25 +53,52 @@ interface Node extends NetObject {
      * The home room of the cluster.
      */
     readonly home: Room;
+
+    /**
+     * The type of the node.
+     */
+    readonly type: NodeType;
 }
 
 type NodeStructure = Structure | Source | Mineral
+type NodeType = TopNodeType | SubNodeType;
 
 // TODO more node type for TopNode and SubNode
-type TopNode = ClusterNode | SpawnNode | ControllerNode | SourceNode
-type SubNode = ContainerNode
+type TopNode = ClusterNode | SpawnNode | ControllerNode | SourceNode;
+type SubNode = ContainerNode;
 
+// TODO more node type for TopNode and SubNode
+type TopNodeType = ClusterNodeType | SpawnNodeType | ControllerNodeType | SourceNodeType;
+type SubNodeType = ContainerNodeType;
 
 interface NodeMemory<T extends MemoryComplement = MemoryComplement> extends NetObjectMemory {
+    type: NodeType;
+
+    memoryType: NodeMemoryType;
+
     clusterName: string;
 
     others: T;
 }
 
 interface TopNodeMemory<T extends MemoryComplement = MemoryComplement> extends NodeMemory<T> {
-    flagName ?: string;
+    type: TopNodeType;
+
+    flagName?: string;
 }
 
 interface SubNodeMemory<T extends MemoryComplement = MemoryComplement> extends NodeMemory<T> {
+    type: SubNodeType;
+
     superNodeName: string;
 }
+
+/**
+ * The string of memory type for Node.
+ */
+type NodeMemoryType = TopNodeMemoryType | SubNodeMemoryType;
+
+
+// TODO more node type for TopNode and SubNode
+type TopNodeMemoryType = ClusterNodeMemoryType | SpawnNodeMemoryType | ControllerNodeMemoryType | SourceNodeMemoryType;
+type SubNodeMemoryType = ContainerNodeMemoryType;

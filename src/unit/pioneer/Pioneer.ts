@@ -1,6 +1,7 @@
 import { UnitBase } from "../Unit";
 import { emoji } from "../../utils/Emoji";
 import { CONSTRUCTING, HARVESTING, UPGRADING } from "./PioneerStatus";
+import { PioneerType } from "./PioneerType";
 
 export class PioneerImpl extends UnitBase implements Pioneer {
     private readonly _node: ClusterNode;
@@ -164,6 +165,10 @@ export class PioneerImpl extends UnitBase implements Pioneer {
         this._status = newState;
     }
 
+    get type(): PioneerType {
+        return PioneerType;
+    }
+
     protected save(): void {
         Memory.set.unit<UnitMemory<PioneerMemoryComplement>>(this.name).as({
             name: this.name,
@@ -171,7 +176,7 @@ export class PioneerImpl extends UnitBase implements Pioneer {
             spawnOptions: this.spawnOptions,
             spawned: this.spawned,
             clusterName: this.cluster.name,
-            type: "Pioneer",
+            type: this.type,
             nodeName: this.node.name,
 
             others: {

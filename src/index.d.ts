@@ -8,6 +8,11 @@ interface NetObject {
     readonly name: string;
 
     /**
+     * Type
+     */
+    readonly type: NetObjectType;
+
+    /**
      * Run in main loop.
      */
     run(...args: any[]): void;
@@ -15,12 +20,23 @@ interface NetObject {
 
 
 /**
+ * The string type for all NetObject.
+ */
+type NetObjectType = ClusterType | NodeType | UnitType;
+
+/**
  * The memory type of NetObject
  */
 interface NetObjectMemory {
     name: string;
     type: string;
+    memoryType: MemoryType;
 }
+
+/**
+ * The string type of memory.
+ */
+type MemoryType = ClusterMemoryType | NodeMemoryType | UnitMemoryType;
 
 /**
  * The memory type for both primitive Screeps memory and ScreepsNet memory.
@@ -47,6 +63,11 @@ interface Builder<T extends NetObject> {
      * @returns The object.
      */
     from(memory: NetObjectMemory, ...args: any[]): T;
+}
+
+interface Coordinate {
+    x: number;
+    y: number;
 }
 
 //

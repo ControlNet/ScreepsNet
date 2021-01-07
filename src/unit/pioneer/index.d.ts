@@ -1,6 +1,10 @@
 interface Pioneer extends Unit {
     status: PioneerState;
+
+    type: PioneerType;
 }
+
+type PioneerType = "Pioneer";
 
 /**
  * The status of Pioneer
@@ -19,5 +23,7 @@ interface PioneerMemoryComplement extends MemoryComplement {
     sourceId: Id<Source>;
     status: PioneerState;
 }
+
+type PioneerMemoryType = "PioneerMemory";
 
 

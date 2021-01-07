@@ -14,6 +14,8 @@ export abstract class UnitBase implements Unit {
 
     abstract run(): void
 
+    abstract get type(): UnitType;
+
     protected constructor(body: UnitBody, name: string, cluster: Cluster, options: SpawnOptions) {
         this._body = body;
         this._name = name;
@@ -21,6 +23,7 @@ export abstract class UnitBase implements Unit {
         this._cluster = cluster;
         this._spawnOptions = options;
     }
+
 
     get body(): UnitBody {
         return this._body;

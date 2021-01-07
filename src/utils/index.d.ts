@@ -53,3 +53,6 @@ interface TravelState {
 interface Creep {
     travelTo(destination: { pos: RoomPosition } | RoomPosition, ops?: TravelToOptions): number;
 }
+
+declare function checkNetObjType<T extends NetObject>(...types: Array<NetObjectType>): (value: NetObject) => value is T;
+declare function checkNetObjType<T extends NetObjectMemory>(...types: Array<MemoryType>): (value: NetObjectMemory) => value is T;

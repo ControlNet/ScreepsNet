@@ -1,8 +1,13 @@
 interface CentralCluster extends Cluster {
+    readonly type: CentralClusterType;
 }
 
 interface CentralClusterMemoryComplement extends MemoryComplement {
 }
+
+type CentralClusterType = "CentralCluster";
+
+type CentralClusterMemoryType = "CentralClusterMemory";
 
 
 type CentralClusterStage = FOUNDING | EXPANDING | DEVELOPING | FINALIZING;

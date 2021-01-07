@@ -2,27 +2,26 @@
  * The Unit in ScreepsNet is a base type for creeps.
  */
 interface Unit extends NetObject {
-
     /**
      * The body parts array of this unit.
      */
     readonly body: UnitBody;
-
+    /**
+     * The type of this unit.
+     */
+    readonly type: UnitType;
     /**
      * The spawn options for spawning.
      */
     readonly spawnOptions: SpawnOptions;
-
     /**
      * The bool if the creep is spawned or still in plan.
      */
     spawned: boolean;
-
     /**
      * The cluster the unit belongs to.
      */
     readonly cluster: Cluster;
-
     /**
      * Let the creep say something
      */
@@ -30,8 +29,12 @@ interface Unit extends NetObject {
 }
 
 type UnitBody = Array<BodyPartConstant>;
+type UnitType = PioneerType | ProbeType; // TODO: future add more
 
 interface UnitMemory<T extends MemoryComplement = MemoryComplement> extends NetObjectMemory {
+    type: UnitType;
+
+    memoryType: UnitMemoryType;
     /**
      * The body part array of this unit.
      */
@@ -57,3 +60,5 @@ interface UnitMemory<T extends MemoryComplement = MemoryComplement> extends NetO
      */
     others: T;
 }
+
+type UnitMemoryType = PioneerMemoryType | ProbeMemoryType; // TODO: future add more

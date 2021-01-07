@@ -1,9 +1,15 @@
-import { ClusterNodeImpl } from "./cluster-node/ClusterNode";
-import { SpawnNodeImpl } from "./spawn-node/SpawnNode";
-import { ControllerNodeImpl } from "./controller-node/ControllerNode";
-import { SourceNodeImpl } from "./source-node/SourceNode";
-import { ContainerNodeImpl } from "./contrainer-node/ContainerNode";
+import { ClusterNodeMemoryType, ClusterNodeType } from "./cluster-node/ClusterNodeType";
+import { ControllerNodeMemoryType, ControllerNodeType } from "./controller-node/ControllerNodeType";
+import { SourceNodeMemoryType, SourceNodeType } from "./source-node/SourceNodeType";
+import { SpawnNodeMemoryType, SpawnNodeType } from "./spawn-node/SpawnNodeType";
+import { ContainerNodeMemoryType, ContainerNodeType } from "./contrainer-node/ContainerNodeType";
 
-export const TopNodeImpls = [ClusterNodeImpl, SpawnNodeImpl, ControllerNodeImpl, SourceNodeImpl];
+export const TopNodeTypes: Array<TopNodeType> = [ClusterNodeType, ControllerNodeType, SourceNodeType, SpawnNodeType]
 
-export const SubNodeImpls = [ContainerNodeImpl];
+export const SubNodeTypes: Array<SubNodeType> = [ContainerNodeType]
+
+export const TopNodeMemoryTypes: Array<TopNodeMemoryType> = [
+    ClusterNodeMemoryType, ControllerNodeMemoryType, SourceNodeMemoryType, SpawnNodeMemoryType
+]
+
+export const SubNodeMemoryTypes: Array<SubNodeMemoryType> = [ContainerNodeMemoryType];

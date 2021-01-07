@@ -56,11 +56,6 @@ interface Cluster extends NetObject {
      */
     stage: ClusterStage;
     /**
-     * The type of the cluster.
-     */
-    readonly type: string;
-
-    /**
      * The main loop of this cluster.
      */
     run(): void;
@@ -102,6 +97,8 @@ type ClusterType = "CentralCluster" // TODO: Add more in the future
  * The ClusterMemory stores everything about the cluster to Memory.
  */
 interface ClusterMemory<T extends MemoryComplement = MemoryComplement> extends NetObjectMemory {
+    type: ClusterType;
+    memoryType: ClusterMemoryType;
     /**
      * The name of home room of this cluster.
      */
@@ -127,6 +124,11 @@ interface ClusterMemory<T extends MemoryComplement = MemoryComplement> extends N
      */
     others: T;
 }
+
+/**
+ * The string type of ClusterMemory.
+ */
+type ClusterMemoryType = CentralClusterMemoryType; // TODO: add more in the future
 
 /**
  * The ClusterStage indicates the stage of the cluster.

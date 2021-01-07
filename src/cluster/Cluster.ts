@@ -12,7 +12,7 @@ export abstract class ClusterBase implements Cluster {
     protected _controller?: ControllerNode;
     protected readonly _rooms: Array<Room>;
     protected _node?: ClusterNode;
-    protected _topNodes: Array<Node>;
+    protected _topNodes: Array<TopNode>;
     protected _level: number;
     static readonly build: Builder<Cluster>;
 
@@ -74,7 +74,7 @@ export abstract class ClusterBase implements Cluster {
         }
     };
 
-    abstract get type(): string;
+    abstract get type(): NetObjectType;
 
     get name(): string {
         return this._name;
@@ -116,11 +116,11 @@ export abstract class ClusterBase implements Cluster {
         return this._level;
     }
 
-    get topNodes(): Array<Node> {
+    get topNodes(): Array<TopNode> {
         return this._topNodes;
     }
 
-    set topNodes(value: Array<Node>) {
+    set topNodes(value: Array<TopNode>) {
         this._topNodes = value;
     }
 

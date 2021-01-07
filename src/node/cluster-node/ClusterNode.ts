@@ -1,9 +1,11 @@
 import { TopNodeBase } from "../Node";
 import { PioneerImpl } from "../../unit/pioneer/Pioneer";
-import { checkType } from "../../utils/Others";
+import { checkNetObjType, getByKey } from "../../utils/HelperFunctions";
 import { ContainerNodeImpl } from "../contrainer-node/ContainerNode";
 import { DEVELOPING, EXPANDING, FINALIZING, FOUNDING } from "../../cluster/central-cluster/CentralClusterStage";
-import { SubNodeImpls } from "../NodeUtils";
+import { SubNodeMemoryTypes } from "../NodeUtils";
+import { Reducer } from "../../utils/Reducer";
+import { PioneerType } from "../../unit/pioneer/PioneerType";
 
 export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
     protected readonly _flag = undefined;
@@ -18,7 +20,7 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
     protected reconstructSubNodes() {
         const recNodes: Array<SubNode> = Memory.get.all.nodes
             // filter only the memory of sub nodes
-            .filter<SubNodeMemory>(checkType<SubNodeMemory>(...SubNodeImpls))
+            .filter<SubNodeMemory>(checkNetObjType<SubNodeMemory>(...SubNodeMemoryTypes))
             // filter only the sub-nodes belongs to this node
             .filter(subNodeMemory => subNodeMemory.superNodeName === this.name)
             // build objects from the memory
@@ -68,9 +70,30 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
         this.save();
     }
 
+    /**
+     * The process running in the ClusterNode
+     * @param stage - The stage of the ClusterNode
+     * @private
+     */
     private runInClusterNode(stage: CentralClusterStage) {
+        // check the required units for spawning
         switch (stage) {
             case FOUNDING:
+                const pioneerCapacity = this.cluster.sources // get all sources in this cluster
+                    // summation all working slots of sources
+                    .map(getByKey<number>("numberOfWorkingSlots"))
+                    .reduce(Reducer.add);
+
+                // get total number of pioneers
+                const nPioneer = this.units
+                    .filter(unit => unit.type === PioneerType)
+                    .map(() => 1)
+                    .reduce(Reducer.add);
+
+                // if the number of pioneer is less than target, need to spawn more
+                if (nPioneer < pioneerCapacity) {
+                    // TODO
+                }
 
 
                 break;
@@ -82,6 +105,12 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
                 break;
         }
     }
+
+    protected checkUnitSpawning(): void {
+
+    }
+
+
 
     static readonly build: Builder<ClusterNode> = {
         //TODO
@@ -103,5 +132,7 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
         return false;
     }
 
-
+    get type(): ClusterNodeType {
+        return "ClusterNode";
+    }
 }
