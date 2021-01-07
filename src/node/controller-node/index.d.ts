@@ -1,0 +1,3 @@
+interface ControllerNode extends Node {
+
+}

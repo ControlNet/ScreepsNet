@@ -1,0 +1,3 @@
+interface ContainerNode extends Node {
+
+}
