@@ -12,3 +12,7 @@ type ClusterNodeMemoryType = "ClusterNodeMemory";
 interface ClusterNodeMemoryComplement extends MemoryComplement {
 
 }
+
+interface ClusterNodeMemory extends TopNodeMemory<ClusterNodeMemoryComplement> {
+    structureId: Id<StructureController>
+}

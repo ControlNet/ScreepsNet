@@ -14,6 +14,8 @@ export abstract class UnitBase implements Unit {
 
     abstract run(): void
 
+    abstract save(): void;
+
     abstract get type(): UnitType;
 
     protected constructor(body: UnitBody, name: string, cluster: Cluster, options: SpawnOptions) {
@@ -48,12 +50,6 @@ export abstract class UnitBase implements Unit {
     get spawnOptions(): SpawnOptions {
         return this._spawnOptions;
     }
-
-    /**
-     * Save to memory.
-     * @protected
-     */
-    protected abstract save(): void;
 
     say(message: string, toPublic?: boolean): void {
         this.creep?.say(message, toPublic);

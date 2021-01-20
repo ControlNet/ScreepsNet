@@ -9,7 +9,6 @@ type CentralClusterType = "CentralCluster";
 
 type CentralClusterMemoryType = "CentralClusterMemory";
 
-
 type CentralClusterStage = FOUNDING | EXPANDING | DEVELOPING | FINALIZING;
 
 type FOUNDING = 0;

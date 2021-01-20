@@ -69,11 +69,3 @@ interface Coordinate {
     x: number;
     y: number;
 }
-
-//
-// // `global` extension samples
-// declare namespace NodeJS {
-//     interface Global {
-//         log: any;
-//     }
-// }

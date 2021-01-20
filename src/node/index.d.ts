@@ -60,6 +60,10 @@ interface Node extends NetObject {
     readonly type: NodeType;
 }
 
+interface NodeBuilder<T extends Node> extends Builder<T> {
+    from(memory: NodeMemory, cluster: Cluster, superNode?: Node): T;
+}
+
 type NodeStructure = Structure | Source | Mineral
 type NodeType = TopNodeType | SubNodeType;
 
@@ -72,6 +76,8 @@ type TopNodeType = ClusterNodeType | SpawnNodeType | ControllerNodeType | Source
 type SubNodeType = ContainerNodeType;
 
 interface NodeMemory<T extends MemoryComplement = MemoryComplement> extends NetObjectMemory {
+    structureId: string;
+
     type: NodeType;
 
     memoryType: NodeMemoryType;

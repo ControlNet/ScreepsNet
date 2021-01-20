@@ -35,6 +35,11 @@ interface Cluster extends NetObject {
      */
     readonly spawns: Array<SpawnNode>;
     /**
+     * Add a unit to spawn queue.
+     * @param unit
+     */
+    spawn(unit: Unit): void;
+    /**
      * The quick link to the construction sites of this cluster.
      */
     readonly constructionSites: Array<ConstructionSite>;

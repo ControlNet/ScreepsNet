@@ -2,6 +2,26 @@ interface Pioneer extends Unit {
     status: PioneerState;
 
     type: PioneerType;
+
+    /**
+     * The node of this pioneer unit belongs to.
+     */
+    node: ClusterNode;
+
+    /**
+     * The controller of this pioneer unit need to be upgraded.
+     */
+    controller: StructureController;
+
+    /**
+     * The source structure for this pioneer to harvest.
+     */
+    source: Source;
+
+    /**
+     * The source slot, which is the harvest position, of this pioneer.
+     */
+    sourceSlot: RoomPosition;
 }
 
 type PioneerType = "Pioneer";
@@ -22,8 +42,10 @@ interface PioneerMemoryComplement extends MemoryComplement {
     controllerRoomName: string;
     sourceId: Id<Source>;
     status: PioneerState;
+
+    slotX: number;
+    slotY: number;
+    slotRoomName: string;
 }
 
 type PioneerMemoryType = "PioneerMemory";
-
-

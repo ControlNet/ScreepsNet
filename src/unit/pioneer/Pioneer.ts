@@ -1,20 +1,24 @@
 import { UnitBase } from "../Unit";
 import { emoji } from "../../utils/Emoji";
 import { CONSTRUCTING, HARVESTING, UPGRADING } from "./PioneerStatus";
-import { PioneerType } from "./PioneerType";
+import { PioneerMemoryType, PioneerType } from "./PioneerType";
+import { generateRandomNumString } from "../../utils/HelperFunctions";
+import { generateUnitName } from "../UnitUtils";
 
 export class PioneerImpl extends UnitBase implements Pioneer {
     private readonly _node: ClusterNode;
     private readonly _controller: StructureController;
     private readonly _source: Source;
+    private readonly _sourceSlot: RoomPosition;
     private _status: PioneerState;
 
-    constructor(body: UnitBody, name: string, cluster: Cluster, options: SpawnOptions, node: ClusterNode,
-                controller: StructureController, source: Source) {
+    protected constructor(body: UnitBody, name: string, cluster: Cluster, options: SpawnOptions, node: ClusterNode,
+                          controller: StructureController, source: Source, sourceSlot: RoomPosition) {
         super(body, name, cluster, options);
         this._node = node;
         this._controller = controller;
         this._source = source;
+        this._sourceSlot = sourceSlot;
         this._status = HARVESTING;
     }
 
@@ -98,28 +102,34 @@ export class PioneerImpl extends UnitBase implements Pioneer {
 
     static readonly build: Builder<Pioneer> = {
         with(body: UnitBody,
-             name: string,
              cluster: Cluster,
              node: ClusterNode,
              controller: StructureController,
              source: Source,
+             sourceSlot: RoomPosition,
+             name?: string,
              memory?: CreepMemory,
              energyStructures?: Array<StructureExtension>,
              dryRun?: boolean,
              directions?: Array<DirectionConstant>): Pioneer {
 
+            if (name === undefined) {
+                name = generateUnitName(PioneerType);
+            }
+
             return new PioneerImpl(body, name, cluster, {memory, energyStructures, dryRun, directions},
-                node, controller, source);
+                node, controller, source, sourceSlot);
         },
 
         from(memory: UnitMemory<PioneerMemoryComplement>, cluster: Cluster, node: Node): Pioneer {
             const obj = this.with(
                 memory.body,
-                memory.name,
                 cluster,
                 node,
                 Game.rooms[memory.others.controllerRoomName].controller!,
                 Game.getObjectById(memory.others.sourceId)!,
+                new RoomPosition(memory.others.slotX, memory.others.slotY, memory.others.slotRoomName),
+                memory.name,
                 memory.spawnOptions.memory,
                 memory.spawnOptions.energyStructures,
                 memory.spawnOptions.dryRun,
@@ -133,7 +143,6 @@ export class PioneerImpl extends UnitBase implements Pioneer {
         }
     }
 
-
     get node(): ClusterNode {
         return this._node;
     }
@@ -144,6 +153,10 @@ export class PioneerImpl extends UnitBase implements Pioneer {
 
     get source(): Source {
         return this._source;
+    }
+
+    get sourceSlot(): RoomPosition {
+        return this._sourceSlot;
     }
 
     get status(): PioneerState {
@@ -169,7 +182,7 @@ export class PioneerImpl extends UnitBase implements Pioneer {
         return PioneerType;
     }
 
-    protected save(): void {
+    save(): void {
         Memory.set.unit<UnitMemory<PioneerMemoryComplement>>(this.name).as({
             name: this.name,
             body: this.body,
@@ -178,11 +191,16 @@ export class PioneerImpl extends UnitBase implements Pioneer {
             clusterName: this.cluster.name,
             type: this.type,
             nodeName: this.node.name,
+            memoryType: PioneerMemoryType,
 
             others: {
                 controllerRoomName: this.controller.room.name,
                 sourceId: this.source.id,
-                status: this.status
+                status: this.status,
+
+                slotX: this.sourceSlot.x,
+                slotY: this.sourceSlot.y,
+                slotRoomName: this.sourceSlot.roomName,
             }
         });
     }

@@ -14,6 +14,16 @@ interface SpawnNode extends Node {
     spawn(unit: Unit): void;
 
     readonly type: SpawnNodeType;
+
+    /**
+     * Get the status if the spawn structure is busy.
+     */
+    isBusy(): boolean;
+
+    /**
+     * Get the length of queue.
+     */
+    queueLength(): number;
 }
 
 type SpawnNodeType = "SpawnNode";
@@ -28,5 +38,5 @@ interface SpawnPlan {
 }
 
 interface SpawnNodeMemoryComplement extends MemoryComplement {
-
+    plan: Array<SpawnPlan>
 }

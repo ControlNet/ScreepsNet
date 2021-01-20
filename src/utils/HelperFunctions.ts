@@ -1,26 +1,10 @@
 import _ from "lodash";
+import { Reducer } from "./Reducer";
 
 /**
  * A curried function able to generate a type predicate
  * that can check if the type of a input object is T or not.
  *
- * @param types - The constructors used for checking.
- * @typeParam T - The target of type predicate.
- * @returns A type predicate.
- *
- * @example
- * // check if the node is SpawnNode
- * checkType<SpawnNode>(SpawnNodeImpl)(node)
- *
- * // check if the node is TopNode (type TopNode = SpawnNode | ClusterNode) for example.
- * checkType<TopNode>)(SpawnNodeImpl, ClusterNodeImpl)(node)
- */
-export function checkType<T>(...types: { new(...args: any[]): any }[]): (value: any) => value is T {
-    return (value): value is T => types.some(type => value instanceof type);
-}
-
-/**
- * A similar function to `checkType` but more suitable for NetObject or NetObjectMemory objects
  * @param types - The type objects for filtering
  * @typeParam T - The target of type predicate.
  * @returns A type predicate.
@@ -32,8 +16,8 @@ export function checkType<T>(...types: { new(...args: any[]): any }[]): (value: 
  * // check if the node is TopNode (type TopNode = SpawnNode | ClusterNode) for example.
  * checkNetObjectType<TopNode>(SpawnNode, ClusterNode)(node)
  */
-export function checkNetObjType<T extends (NetObject | NetObjectMemory)>(...types: Array<NetObjectType> | Array<MemoryType>): (value: NetObject | NetObjectMemory) => value is T {
-    return (value): value is T => types.some(type => value.type === type);
+export function checkType<T extends (NetObject | NetObjectMemory)>(...types: Array<NetObjectType> | Array<MemoryType>): (value: NetObject | NetObjectMemory) => value is T {
+    return (value): value is T => types.some((type: NetObjectType | MemoryType) => value.type === type);
 }
 
 /**
@@ -59,4 +43,32 @@ export function coordinateAdd(...points: Array<Coordinate>): Coordinate {
         x: _.sum(points.map(getX)),
         y: _.sum(points.map(getY))
     }
+}
+
+export function compareRoomPosition(roomPosition1: RoomPosition, roomPosition2: RoomPosition) {
+    return roomPosition1.roomName === roomPosition2.roomName &&
+        roomPosition1.x === roomPosition2.x &&
+        roomPosition1.y === roomPosition2.y
+}
+
+export function includeRoomPosition(array: Array<RoomPosition>, pos: RoomPosition): boolean {
+    return array.some(each => compareRoomPosition(each, pos));
+}
+
+/**
+ * Randomly generate one digit.
+ * @returns: One digit (0-9).
+ */
+export function getRandomDigit(): number {
+    return Math.min(Math.floor(Math.random() * 10), 9);
+}
+
+/**
+ * Randomly generate a series of random digits
+ * @param n - The length of generated digits.
+ */
+export function generateRandomNumString(n: number): string {
+    return _.range(0, n).map(getRandomDigit)
+        .map(digit => digit.toString())
+        .reduce(Reducer.strcat);
 }

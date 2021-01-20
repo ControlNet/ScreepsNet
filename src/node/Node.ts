@@ -18,7 +18,7 @@ export abstract class NodeBase implements Node {
     /**
      * The builder object to construct the objects in future ticks.
      */
-    static readonly build: Builder<Node>;
+    static readonly build: NodeBuilder<Node>;
 
     abstract run(...args: any[]): void
 
@@ -99,8 +99,6 @@ export abstract class TopNodeBase extends NodeBase {
      * @protected
      */
     protected abstract reconstructUnits(): void;
-
-    protected abstract checkUnitSpawning(): void;
 
     get subNodes(): Array<SubNode> {
         return this._subNodes;

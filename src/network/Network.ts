@@ -46,6 +46,8 @@ export const network: Network = {
             // reconstruct Cluster objects from memory
             this.reconstructClusters();
 
+            this.cluster.forEach(cluster => cluster.run());
+
             // main loop
             const harvesters = Object.entries(Game.creeps)
                 .filter(([name, creep]) => creep.memory.role == "harvester");

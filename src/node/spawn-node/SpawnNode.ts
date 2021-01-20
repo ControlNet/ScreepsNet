@@ -1,9 +1,18 @@
-import { NodeBase, TopNodeBase } from "node/Node";
+import { TopNodeBase } from "node/Node";
+import { SpawnNodeType } from "./SpawnNodeType";
 
 
 export class SpawnNodeImpl extends TopNodeBase implements SpawnNode {
     protected readonly _structure: StructureSpawn;
-    protected readonly _superNode: Node = null;
+    protected readonly _superNode = undefined;
+    private readonly plan: Array<SpawnPlan> = [];
+
+
+    constructor(name: string, cluster: Cluster, structure: StructureSpawn, flag: Flag) {
+        super(name, cluster, structure, flag);
+        this._structure = structure;
+        this.plan = [];
+    }
 
     protected reconstructSubNodes(): void {
     }
@@ -15,9 +24,8 @@ export class SpawnNodeImpl extends TopNodeBase implements SpawnNode {
         // TODO add logic
     }
 
-    private readonly plan: Array<SpawnPlan> = [];
 
-    static readonly build: Builder<SpawnNode> = {
+    static readonly build: NodeBuilder<SpawnNode> = {
         // TODO
         with(...args): SpawnNode {
             return undefined;
@@ -26,6 +34,10 @@ export class SpawnNodeImpl extends TopNodeBase implements SpawnNode {
         from(memory: NodeMemory<SpawnNodeMemoryComplement>, cluster: Cluster): SpawnNode {
             return undefined;
         },
+    }
+
+    protected save(): void {
+        // TODO
     }
 
     hasFlag(): boolean {
@@ -40,12 +52,20 @@ export class SpawnNodeImpl extends TopNodeBase implements SpawnNode {
         // TODO
     }
 
+    isBusy(): boolean {
+        return this.structure.spawning !== null;
+    }
+
+    queueLength(): number {
+        return this.plan.length;
+    }
+
     get structure(): StructureSpawn {
         return this._structure;
     }
 
-    protected save(): void {
-        // TODO
+    get type(): SpawnNodeType {
+        return SpawnNodeType;
     }
 
 

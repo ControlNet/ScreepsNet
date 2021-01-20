@@ -2,7 +2,7 @@ import { ClusterBase } from "../Cluster";
 import { DEVELOPING, EXPANDING, FINALIZING, FOUNDING } from "./CentralClusterStage";
 import { ClusterNodeImpl } from "../../node/cluster-node/ClusterNode";
 import { SpawnNodeImpl } from "../../node/spawn-node/SpawnNode";
-import { checkNetObjType, getByKey } from "../../utils/HelperFunctions";
+import { checkType, getByKey } from "../../utils/HelperFunctions";
 import { SourceNodeImpl } from "../../node/source-node/SourceNode";
 import { ControllerNodeImpl } from "../../node/controller-node/ControllerNode";
 import _ from "lodash";
@@ -74,7 +74,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             .forEach(this.add.node); // Assign the nodes to `this.node`.
 
         // filter directly managed nodes (top nodes)
-        this.topNodes = _.values(this.nodes).filter<TopNode>(checkNetObjType<TopNode>(...TopNodeTypes));
+        this.topNodes = _.values(this.nodes).filter<TopNode>(checkType<TopNode>(...TopNodeTypes));
     }
 
     /**
@@ -91,7 +91,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             // for each source, construct a new SourceNode object,
             // add to the `this.nodes` and `this.sources`
             .forEach(source => {
-                const sourceNode = SourceNodeImpl.build.with(source); // TODO: Not finished yet
+                const sourceNode = SourceNodeImpl.build.with(this, source);
                 this.add.node(sourceNode);
                 this.sources.push(sourceNode);
             })
@@ -99,7 +99,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
         // scan controller
         if (this._controller === undefined) {
             // if no controller defined, build the ControllerNode and add to the `this.nodes` and `this.controller`
-            const controllerNode = ControllerNodeImpl.build.with(this.home.controller); // TODO: Not finished yet
+            const controllerNode = ControllerNodeImpl.build.with(this, this.home.controller);
             this.add.node(controllerNode);
             this.controller = controllerNode;
         }
@@ -133,6 +133,10 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
 
     private runFinalizing(): void {
         //TODO
+    }
+
+    spawn(unit: Unit): void {
+        _.minBy(this.spawns, spawnNode => spawnNode.queueLength())!.spawn(unit)
     }
 
     get stage(): CentralClusterStage {

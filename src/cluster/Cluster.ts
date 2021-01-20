@@ -46,6 +46,8 @@ export abstract class ClusterBase implements Cluster {
 
     abstract get stage(): ClusterStage;
 
+    abstract spawn(unit: Unit): void;
+
     /**
      * Save to memory
      * @protected
@@ -140,3 +142,4 @@ export abstract class ClusterBase implements Cluster {
         this._controller = value;
     }
 }
+

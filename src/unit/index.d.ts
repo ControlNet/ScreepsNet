@@ -26,6 +26,11 @@ interface Unit extends NetObject {
      * Let the creep say something
      */
     say(message: string, toPublic?: boolean): void;
+
+    /**
+     * Save to memory.
+     */
+    save(): void;
 }
 
 type UnitBody = Array<BodyPartConstant>;
