@@ -14,11 +14,18 @@ interface Memory {
      * Memory.units stores all information for all nodes.
      */
     units: { [name: string]: UnitMemory };
+}
+
+interface MemoryIO {
+
     /**
      * MemoryGetter can access to the Memory.
      */
     get: MemoryGetter;
 
+    /**
+     * MemorySetter can set a memory sub-object with given name as key.
+     */
     set: MemorySetter;
 }
 

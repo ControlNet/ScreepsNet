@@ -1,5 +1,6 @@
 export const emoji = {
     mining: "⛏️",
     building: "🚧",
-    upgrading: "♟️"
+    upgrading: "♟️",
+    delivering: "🛒"
 }

@@ -29,10 +29,11 @@ type PioneerType = "Pioneer";
 /**
  * The status of Pioneer
  */
-type PioneerState = HARVESTING | UPGRADING | CONSTRUCTING;
+type PioneerState = HARVESTING | UPGRADING | CONSTRUCTING | DELIVERING;
 type HARVESTING = 0;
 type UPGRADING = 1;
 type CONSTRUCTING = 2;
+type DELIVERING = 3;
 
 
 /**

@@ -16,26 +16,19 @@ export abstract class ClusterBase implements Cluster {
     protected _level: number;
     static readonly build: Builder<Cluster>;
 
-    protected constructor(name: string, home: Room, fromMemory: boolean = true) {
+    protected constructor(name: string, home: Room, nodes: NodeMap, rooms: Array<Room>, constructionSites: Array<ConstructionSite>,
+                          topNodes: Array<TopNode>, sources: Array<SourceNode>, spawns: Array<SpawnNode>,
+                          controller?: ControllerNode, node?: ClusterNode) {
         this._name = name;
         this._home = home;
-        this._nodes = {};
-
-        if (fromMemory) {
-            this._topNodes = [];
-            this._rooms = [];
-        } else {
-            this._node = ClusterNodeImpl.build.with(); // TODO: finishing the ClusterNodeImpl construction
-            this._nodes[this.node.name] = this.node;
-
-            this._topNodes = [this.node];
-            this._rooms = [this.home];
-            this._controller = ControllerNodeImpl.build.with(); //TODO: finishing the ControllerNodeImpl construction
-        }
-
-        this._spawns = [];
-        this._sources = [];
-        this._constructionSites = []
+        this._nodes = nodes;
+        this._spawns = spawns;
+        this._sources = sources;
+        this._constructionSites = constructionSites;
+        this._controller = controller;
+        this._rooms = rooms;
+        this._node = node;
+        this._topNodes = topNodes;
         this._level = this.home.controller?.level ?? -1;
     }
 

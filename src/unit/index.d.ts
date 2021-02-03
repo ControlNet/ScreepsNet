@@ -19,9 +19,17 @@ interface Unit extends NetObject {
      */
     spawned: boolean;
     /**
+     * The creep object of this unit.
+     */
+    creep?: Creep;
+    /**
      * The cluster the unit belongs to.
      */
     readonly cluster: Cluster;
+    /**
+     * The node the unit belongs to.
+     */
+    readonly node: TopNode;
     /**
      * Let the creep say something
      */

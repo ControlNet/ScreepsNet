@@ -121,9 +121,13 @@ interface ClusterMemory<T extends MemoryComplement = MemoryComplement> extends N
      */
     nodeName: string;
     /**
+     * The name of the ControllerNode of this cluster.
+     */
+    controllerName: string;
+    /**
      * All id of construction sites managed by this cluster.
      */
-    constructionSitesIds: Array<string>;
+    constructionSitesIds: Array<Id<ConstructionSite>>;
     /**
      * Other information might needed for some subclass of Cluster.
      */

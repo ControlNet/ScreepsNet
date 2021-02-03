@@ -1,18 +1,20 @@
-import { TravelerIniter } from "utils/Traveler";
+import { traveler } from "utils/Traveler";
 import { ErrorMapper } from "utils/ErrorMapper";
 import { CentralClusterImpl } from "../cluster/central-cluster/CentralCluster";
 import { extensionInit } from "../extensions/ExtensionInit";
+import { MemoryIO } from "../extensions/memory/MemoryIO";
+import _ from "lodash";
 
 // Network object
 export const network: Network = {
-    cluster: [],
+    clusters: [],
 
     /**
      * Initialize the AI.
      */
     init(): void {
-        TravelerIniter.init();
-        extensionInit()
+        traveler.init();
+        extensionInit();
     },
     /**
      * Automatically clean the non-existed creeps.
@@ -21,12 +23,13 @@ export const network: Network = {
         for (const name in Memory.creeps) {
             if (!(name in Game.creeps)) {
                 delete Memory.creeps[name];
+                delete Memory.units[name];
             }
         }
     },
 
     reconstructClusters(): void {
-        Memory.get.all.clusters.map(clusterMemory => {
+        this.clusters = MemoryIO.get.all.clusters.map(clusterMemory => {
             switch (clusterMemory.type) {
                 case "CentralCluster":
                     return CentralClusterImpl.build.from(clusterMemory);
@@ -34,7 +37,7 @@ export const network: Network = {
                     console.log(clusterMemory);
                     throw Error("Not valid cluster type.");
             }
-        }).forEach(each => this.cluster.push(each));
+        });
     },
 
     /**
@@ -42,61 +45,26 @@ export const network: Network = {
      */
     run(): () => void {
         return ErrorMapper.wrapLoop(() => {
+            // reset memory roots
+            if (Memory.clusters === undefined) {
+                Memory.clusters = {};
+            }
+            if (Memory.nodes === undefined) {
+                Memory.nodes = {};
+            }
+            if (Memory.units === undefined) {
+                Memory.units = {};
+            }
+
             this.clean();
             // reconstruct Cluster objects from memory
             this.reconstructClusters();
-
-            this.cluster.forEach(cluster => cluster.run());
-
-            // main loop
-            const harvesters = Object.entries(Game.creeps)
-                .filter(([name, creep]) => creep.memory.role == "harvester");
-
-            if (harvesters.length < 2) {
-                const newName = "Harvester" + Game.time;
-                console.log("Spawning new harvester: " + newName);
-                Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName, {
-                    memory: {
-                        role: "harvester", upgrading: false, dest: null
-                    }
-                });
+            // build first cluster
+            if (this.clusters.length === 0) {
+                this.clusters.push(CentralClusterImpl.build.with(_.values(Game.rooms)[0]))
             }
 
-            const upgraders = Object.entries(Game.creeps)
-                .filter(([name, creep]) => creep.memory.role == "upgrader");
-
-            if (upgraders.length < 2) {
-                const newName = "Upgrader" + Game.time;
-
-                const result = Game.spawns["Spawn1"].spawnCreep([WORK, CARRY, MOVE], newName,
-                    {memory: {role: "upgrader", upgrading: false, dest: undefined}});
-
-                if (result == 0) {
-                    console.log("Spawning new upgrader: " + newName);
-                }
-            }
-
-            if (Game.spawns["Spawn1"].spawning) {
-                const spawningCreep = Game.creeps[Game.spawns["Spawn1"].spawning.name];
-                Game.spawns["Spawn1"].room.visual.text(
-                    '🛠️' + spawningCreep.memory.role,
-                    Game.spawns['Spawn1'].pos.x + 1,
-                    Game.spawns['Spawn1'].pos.y,
-                    {align: 'left', opacity: 0.8});
-            }
-
-            for (const name in Game.creeps) {
-                const creep: Creep = Game.creeps[name];
-
-                switch (creep.memory.role) {
-                    case "harvester":
-                        roleHarvester.run(creep);
-                        break;
-                    case "upgrader":
-                        roleUpgrader.run(creep);
-                        break;
-                }
-            }
+            this.clusters.forEach(cluster => cluster.run());
 
         });
     }

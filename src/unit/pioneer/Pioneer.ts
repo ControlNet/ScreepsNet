@@ -1,45 +1,51 @@
 import { UnitBase } from "../Unit";
 import { emoji } from "../../utils/Emoji";
-import { CONSTRUCTING, HARVESTING, UPGRADING } from "./PioneerStatus";
+import { CONSTRUCTING, DELIVERING, HARVESTING, UPGRADING } from "./PioneerStatus";
 import { PioneerMemoryType, PioneerType } from "./PioneerType";
-import { generateRandomNumString } from "../../utils/HelperFunctions";
+import { compareRoomPosition, generateRandomNumString } from "../../utils/HelperFunctions";
 import { generateUnitName } from "../UnitUtils";
+import { MemoryIO } from "../../extensions/memory/MemoryIO";
 
 export class PioneerImpl extends UnitBase implements Pioneer {
-    private readonly _node: ClusterNode;
+    protected readonly _node: ClusterNode;
     private readonly _controller: StructureController;
     private readonly _source: Source;
     private readonly _sourceSlot: RoomPosition;
     private _status: PioneerState;
 
     protected constructor(body: UnitBody, name: string, cluster: Cluster, options: SpawnOptions, node: ClusterNode,
-                          controller: StructureController, source: Source, sourceSlot: RoomPosition) {
-        super(body, name, cluster, options);
+                          controller: StructureController, source: Source, sourceSlot: RoomPosition, creep?: Creep) {
+        super(body, name, node, cluster, options);
         this._node = node;
         this._controller = controller;
         this._source = source;
         this._sourceSlot = sourceSlot;
         this._status = HARVESTING;
+        this.creep = creep;
     }
 
     run(): void {
         // if the creep is not spawned, skip this tick.
-        if (!this.spawned) {
-            return;
-        }
-        // main loop
-        this.checkStatus();
+        if (this.spawned) {
+            // main loop
+            this.checkStatus();
 
-        switch (this.status) {
-            case HARVESTING:
-                this.harvest();
-                break;
-            case UPGRADING:
-                this.upgrade();
-                break;
-            case CONSTRUCTING:
-                this.construct();
-                break;
+            switch (this.status) {
+                case HARVESTING:
+                    this.harvest();
+                    break;
+                case UPGRADING:
+                    this.upgrade();
+                    break;
+                case CONSTRUCTING:
+                    this.construct();
+                    break;
+                case DELIVERING:
+                    this.deliver();
+                    break;
+            }
+        } else {
+            this.checkSpawned();
         }
 
         // save to the memory
@@ -56,13 +62,8 @@ export class PioneerImpl extends UnitBase implements Pioneer {
             case HARVESTING:
                 // when the creep get full capacity of resource
                 if (this.creep?.store.getFreeCapacity() === 0) {
-                    if (this.cluster.constructionSites.length !== 0) {
-                        // if there is some building sites available
-                        this.status = CONSTRUCTING;
-                    } else {
-                        // if no construction sites, continue to upgrade controller
-                        this.status = UPGRADING;
-                    }
+                    // try to fill the spawn
+                    this.status = DELIVERING;
                 }
                 break;
             case UPGRADING:
@@ -77,12 +78,38 @@ export class PioneerImpl extends UnitBase implements Pioneer {
                     this.status = HARVESTING;
                 }
                 break;
+            case DELIVERING:
+                if (this.creep?.store[RESOURCE_ENERGY] === 0) {
+                    this.status = HARVESTING;
+                }
+                // check valid spawn cache targets
+                const targets = this.cluster.spawns
+                    .flatMap(spawnNode => spawnNode.cache)
+                    .filter(spawn => spawn.store.getFreeCapacity(RESOURCE_ENERGY) > 0);
+
+                // if the spawn is already filled
+                if (targets.length === 0) {
+                    // check the valid constructionSites
+                    if (this.cluster.constructionSites.length !== 0) {
+                        // if there is some building sites available
+                        this.status = CONSTRUCTING;
+                    } else {
+                        // if no building sites available
+                        this.status = UPGRADING;
+                    }
+                }
+                break;
         }
     }
 
     private harvest(): void {
-        if (this.creep?.harvest(this.source) === ERR_NOT_IN_RANGE) {
-            this.creep?.travelTo(this.source);
+        if (!compareRoomPosition(this.creep!.pos, this.sourceSlot)) {
+            // if the creep is not in the harvest position
+            // move to the target
+            this.creep?.travelTo(this.sourceSlot);
+        } else {
+            // else start harvesting
+            this.creep?.harvest(this.source);
         }
     }
 
@@ -97,6 +124,14 @@ export class PioneerImpl extends UnitBase implements Pioneer {
 
         if (this.creep?.build(target) === ERR_NOT_IN_RANGE) {
             this.creep?.travelTo(target);
+        }
+    }
+
+    private deliver(): void {
+        const targets = this.cluster.spawns.flatMap(spawnNode => spawnNode.cache);
+
+        if (this.creep?.transfer(targets[0], RESOURCE_ENERGY) === ERR_NOT_IN_RANGE) {
+            this.creep?.travelTo(targets[0]);
         }
     }
 
@@ -138,6 +173,7 @@ export class PioneerImpl extends UnitBase implements Pioneer {
 
             obj.status = memory.others.status;
             obj.spawned = memory.spawned;
+            obj.creep = Game.creeps[memory.name];
 
             return obj;
         }
@@ -166,13 +202,16 @@ export class PioneerImpl extends UnitBase implements Pioneer {
     set status(newState: PioneerState) {
         switch (newState) {
             case HARVESTING:
-                this.say(emoji.mining + "HARVESTING")
+                this.say(emoji.mining + "HARVEST");
                 break;
             case UPGRADING:
-                this.say(emoji.upgrading + "UPGRADING")
+                this.say(emoji.upgrading + "UPGRADE");
                 break;
             case CONSTRUCTING:
-                this.say(emoji.building + "CONSTRUCTING")
+                this.say(emoji.building + "CONSTRUCT");
+                break;
+            case DELIVERING:
+                this.say(emoji.delivering + "DELIVER");
                 break;
         }
         this._status = newState;
@@ -183,7 +222,7 @@ export class PioneerImpl extends UnitBase implements Pioneer {
     }
 
     save(): void {
-        Memory.set.unit<UnitMemory<PioneerMemoryComplement>>(this.name).as({
+        MemoryIO.set.unit<UnitMemory<PioneerMemoryComplement>>(this.name).as({
             name: this.name,
             body: this.body,
             spawnOptions: this.spawnOptions,

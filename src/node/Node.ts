@@ -1,3 +1,8 @@
+import { MemoryIO } from "extensions/memory/MemoryIO";
+import _ from "lodash";
+import { flagColors } from "../utils/FlagColors";
+import { ClusterNodeImpl } from "./cluster-node/ClusterNode";
+
 export abstract class NodeBase implements Node {
     protected readonly _name: string;
     protected readonly _cluster: Cluster;
@@ -84,7 +89,7 @@ export abstract class NodeBase implements Node {
 }
 
 export abstract class TopNodeBase extends NodeBase {
-    protected readonly _subNodes!: Array<SubNode>;
+    protected readonly _subNodes: Array<SubNode> = [];
     protected readonly _superNode = undefined;
 
     abstract run(clusterType: ClusterType, stage: ClusterStage): void

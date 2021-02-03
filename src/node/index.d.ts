@@ -69,11 +69,11 @@ type NodeType = TopNodeType | SubNodeType;
 
 // TODO more node type for TopNode and SubNode
 type TopNode = ClusterNode | SpawnNode | ControllerNode | SourceNode;
-type SubNode = ContainerNode;
+type SubNode = ContainerNode | ExtensionNode;
 
 // TODO more node type for TopNode and SubNode
 type TopNodeType = ClusterNodeType | SpawnNodeType | ControllerNodeType | SourceNodeType;
-type SubNodeType = ContainerNodeType;
+type SubNodeType = ContainerNodeType | ExtensionNodeType;
 
 interface NodeMemory<T extends MemoryComplement = MemoryComplement> extends NetObjectMemory {
     structureId: string;
@@ -107,4 +107,4 @@ type NodeMemoryType = TopNodeMemoryType | SubNodeMemoryType;
 
 // TODO more node type for TopNode and SubNode
 type TopNodeMemoryType = ClusterNodeMemoryType | SpawnNodeMemoryType | ControllerNodeMemoryType | SourceNodeMemoryType;
-type SubNodeMemoryType = ContainerNodeMemoryType;
+type SubNodeMemoryType = ContainerNodeMemoryType | ExtensionNodeMemoryType;

@@ -24,19 +24,39 @@ interface SpawnNode extends Node {
      * Get the length of queue.
      */
     queueLength(): number;
+
+    /**
+     * The source cache structures for spawning.
+     */
+    readonly cache: Array<CacheStructure>;
+
+    readonly flag: Flag;
+
+    readonly plan: Array<SpawnPlan>;
 }
 
 type SpawnNodeType = "SpawnNode";
 
 type SpawnNodeMemoryType = "SpawnNodeMemory";
 
+type CacheStructure = StructureSpawn | StructureExtension;
+
 /**
  * The SpawnPlan is the memory structure indicating the plan of the SpawnNode
  */
 interface SpawnPlan {
-
+    nodeName: string,
+    body: UnitBody,
+    name: string,
+    opts?: SpawnOptions
 }
 
 interface SpawnNodeMemoryComplement extends MemoryComplement {
     plan: Array<SpawnPlan>
+}
+
+interface SpawnNodeMemory extends NodeMemory<SpawnNodeMemoryComplement> {
+    flagName: string;
+
+    structureId: Id<StructureSpawn>;
 }

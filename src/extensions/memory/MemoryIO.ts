@@ -1,7 +1,8 @@
 import { MemorySetterHandlerImpl } from "./MemorySetterHandler";
+import _ from "lodash";
 
-export function initMemoryExt() {
-    Memory.get = {
+export const MemoryIO: MemoryIO = {
+    get: {
         creep(name: string): CreepMemory {
             return Memory.creeps[name];
         },
@@ -36,35 +37,35 @@ export function initMemoryExt() {
 
         all: {
             get creeps(): Array<CreepMemory> {
-                return Object.values(Memory.creeps);
+                return _.values(Memory.creeps);
             },
 
             get powerCreeps(): Array<PowerCreepMemory> {
-                return Object.values(Memory.powerCreeps);
+                return _.values(Memory.powerCreeps);
             },
 
             get flags(): Array<FlagMemory> {
-                return Object.values(Memory.flags);
+                return _.values(Memory.flags);
             },
             get rooms(): Array<RoomMemory> {
-                return Object.values(Memory.rooms);
+                return _.values(Memory.rooms);
             },
             get spawns(): Array<SpawnMemory> {
-                return Object.values(Memory.spawns);
+                return _.values(Memory.spawns);
             },
             get clusters(): Array<ClusterMemory> {
-                return Object.values(Memory.clusters);
+                return _.values(Memory.clusters);
             },
             get nodes(): Array<NodeMemory> {
-                return Object.values(Memory.nodes);
+                return _.values(Memory.nodes);
             },
             get units(): Array<UnitMemory> {
-                return Object.values(Memory.units);
+                return _.values(Memory.units);
             }
         }
-    };
+    },
 
-    Memory.set = {
+    set: {
         creep<T extends CreepMemory = CreepMemory>(name: string): MemorySetterHandler<T> {
             return new MemorySetterHandlerImpl<T>(name, "creeps");
         },
@@ -99,4 +100,3 @@ export function initMemoryExt() {
 
     }
 }
-

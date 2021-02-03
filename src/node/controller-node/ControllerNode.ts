@@ -1,8 +1,8 @@
 import { TopNodeBase } from "../Node";
 import { ControllerNodeMemoryType, ControllerNodeType } from "./ControllerNodeType";
 import { flagColors } from "../../utils/FlagColors";
-import { generateRandomNumString } from "../../utils/HelperFunctions";
 import { generateNodeName } from "../NodeUtils";
+import { MemoryIO } from "../../extensions/memory/MemoryIO";
 
 export class ControllerNodeImpl extends TopNodeBase implements ControllerNode {
     protected readonly _structure: StructureController;
@@ -14,8 +14,9 @@ export class ControllerNodeImpl extends TopNodeBase implements ControllerNode {
         this._structure = structure;
 
         if (flag === undefined) {
-            const {roomName, x, y} = this.structure.pos;
-            this._flag = new Flag(name, flagColors[this.type], flagColors[this.type], roomName, x, y);
+            Game.rooms[this.structure.pos.roomName]
+                .createFlag(this.structure.pos, name, flagColors[this.type], flagColors[this.type])
+            this._flag = Game.flags[this.name];
         } else {
             this._flag = flag;
         }
@@ -55,7 +56,7 @@ export class ControllerNodeImpl extends TopNodeBase implements ControllerNode {
     }
 
     protected save(): void {
-        Memory.set.node<ControllerNodeMemory>(this.name).as({
+        MemoryIO.set.node<ControllerNodeMemory>(this.name).as({
             name: this.name,
             clusterName: this.cluster.name,
             flagName: this.flag.name,

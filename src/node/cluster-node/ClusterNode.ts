@@ -3,11 +3,12 @@ import { PioneerImpl } from "../../unit/pioneer/Pioneer";
 import { checkType, getByKey, includeRoomPosition } from "../../utils/HelperFunctions";
 import { ContainerNodeImpl } from "../contrainer-node/ContainerNode";
 import { DEVELOPING, EXPANDING, FINALIZING, FOUNDING } from "../../cluster/central-cluster/CentralClusterStage";
-import { SubNodeMemoryTypes } from "../NodeUtils";
+import { generateNodeName, SubNodeMemoryTypes } from "../NodeUtils";
 import { Reducer } from "../../utils/Reducer";
 import { PioneerType } from "../../unit/pioneer/PioneerType";
 import { pioneerBodyT1, pioneerBodyT2 } from "../../unit/pioneer/PioneerBody";
-import { ClusterNodeMemoryType } from "./ClusterNodeType";
+import { ClusterNodeMemoryType, ClusterNodeType } from "./ClusterNodeType";
+import { MemoryIO } from "../../extensions/memory/MemoryIO";
 
 export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
     protected readonly _flag = undefined;
@@ -20,7 +21,7 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
     }
 
     protected reconstructSubNodes() {
-        const recNodes: Array<SubNode> = Memory.get.all.nodes
+        MemoryIO.get.all.nodes
             // filter only the memory of sub nodes
             .filter<SubNodeMemory>(checkType<SubNodeMemory>(...SubNodeMemoryTypes))
             // filter only the sub-nodes belongs to this node
@@ -35,12 +36,11 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
                         throw Error(`Not a valid Sub Node type with ${subNodeMemory.name} ${subNodeMemory.type}`);
                 }
             })
-
-        this.subNodes.push(...recNodes);
+            .forEach(subNode => this.subNodes.push(subNode));
     }
 
     protected reconstructUnits() {
-        const recUnits: Array<Unit> = Memory.get.all.units
+        MemoryIO.get.all.units
             .filter(unitMemory => unitMemory.nodeName === this.name)
             .map(unitMemory => {
                 switch (unitMemory.type) {
@@ -51,8 +51,7 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
                         throw Error(`Not a valid Unit type with ${unitMemory.name} ${unitMemory.type}`);
                 }
             })
-
-        this.units.push(...recUnits);
+            .forEach(unit => this.units.push(unit));
     }
 
     run(clusterType: ClusterType, stage: ClusterStage): void {
@@ -84,14 +83,14 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
                 const pioneerCapacity = this.cluster.sources // get all sources in this cluster
                     // summation all working slots of sources
                     .map(getByKey<number>("numberOfWorkingSlots"))
-                    .reduce(Reducer.add);
+                    .reduce(Reducer.add, 0);
 
                 // get total number of pioneers
                 const pioneers: Array<Pioneer> = this.units
                     .filter(checkType(PioneerType));
 
                 const nPioneer: number = pioneers.map(() => 1)
-                    .reduce(Reducer.add);
+                    .reduce(Reducer.add, 0);
 
                 // if the number of pioneer is less than target, need to spawn more
                 if (nPioneer < pioneerCapacity) {
@@ -111,12 +110,14 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
                                     this.cluster,
                                     this,
                                     this.cluster.controller.structure,
-                                    source,
+                                    source.structure,
                                     slot);
                                 // add to spawn queue
                                 this.cluster.spawn(newPioneer);
                                 // save to memory
                                 newPioneer.save();
+                                // add to cluster units list
+                                this.units.push(newPioneer);
                             }
                         }))
                 }
@@ -147,21 +148,25 @@ export class ClusterNodeImpl extends TopNodeBase implements ClusterNode {
 
     static readonly build: NodeBuilder<ClusterNode> = {
 
-        with(name: string, cluster: Cluster, structure: StructureController): ClusterNode {
+        with(cluster: Cluster, structure: StructureController, name?: string): ClusterNode {
+            if (name === undefined) {
+                name = generateNodeName(ClusterNodeType);
+            }
+
             return new ClusterNodeImpl(name, cluster, structure);
         },
 
         from(memory: ClusterNodeMemory, cluster: Cluster): ClusterNode {
             return this.with(
-                memory.name,
                 cluster,
-                Game.getObjectById(memory.structureId)
+                Game.getObjectById(memory.structureId),
+                memory.name
             )
         }
     };
 
     protected save(): void {
-        Memory.set.node<ClusterNodeMemory>(this.name).as({
+        MemoryIO.set.node<ClusterNodeMemory>(this.name).as({
             name: this.name,
             type: this.type,
             clusterName: this.cluster.name,

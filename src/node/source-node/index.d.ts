@@ -18,7 +18,7 @@ interface SourceNode extends Node {
      */
     readonly numberOfWorkingSlots: number;
 
-    readonly flag?: Flag;
+    readonly flag: Flag;
 }
 
 type SourceNodeType = "SourceNode";

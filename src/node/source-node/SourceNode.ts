@@ -2,7 +2,7 @@ import { TopNodeBase } from "../Node";
 import { flagColors } from "../../utils/FlagColors";
 import { SourceNodeMemoryType, SourceNodeType } from "./SourceNodeType";
 import { generateNodeName } from "../NodeUtils";
-import { ControllerNodeType } from "../controller-node/ControllerNodeType";
+import { MemoryIO } from "../../extensions/memory/MemoryIO";
 
 export class SourceNodeImpl extends TopNodeBase implements SourceNode {
 
@@ -28,8 +28,9 @@ export class SourceNodeImpl extends TopNodeBase implements SourceNode {
         }
 
         if (flag === undefined) {
-            const {roomName, x, y} = this.structure.pos;
-            this._flag = new Flag(name, flagColors[this.type], flagColors[this.type], roomName, x, y);
+            Game.rooms[this.structure.pos.roomName]
+                .createFlag(this.structure.pos, name, flagColors[this.type], flagColors[this.type])
+            this._flag = Game.flags[this.name];
         } else {
             this._flag = flag;
         }
@@ -52,7 +53,7 @@ export class SourceNodeImpl extends TopNodeBase implements SourceNode {
         with(cluster: Cluster, structure: Source, name?: string, flag?: Flag,
              numberOfWorkingSlots?: number, workingSlots?: Array<RoomPosition>): SourceNode {
             if (name === undefined) {
-                name = generateNodeName(ControllerNodeType);
+                name = generateNodeName(SourceNodeType);
             }
 
             return new SourceNodeImpl(name, cluster, structure, flag, numberOfWorkingSlots, workingSlots);
@@ -72,7 +73,7 @@ export class SourceNodeImpl extends TopNodeBase implements SourceNode {
     }
 
     protected save(): void {
-        Memory.set.node<SourceNodeMemory>(this.name).as({
+        MemoryIO.set.node<SourceNodeMemory>(this.name).as({
             name: this.name,
             type: this.type,
             clusterName: this.cluster.name,

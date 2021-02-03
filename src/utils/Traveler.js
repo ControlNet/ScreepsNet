@@ -586,7 +586,7 @@ const STATE_DEST_X = 4;
 const STATE_DEST_Y = 5;
 const STATE_DEST_ROOMNAME = 6;
 
-exports.TravelerIniter = {
+export const traveler = {
     // assigns a function to Creep.prototype: creep.travelTo(destination)
     init: function() {
         Creep.prototype.travelTo = function(destination, options) {

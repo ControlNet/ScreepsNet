@@ -1,5 +1,5 @@
 interface Network {
-    cluster: Array<Cluster>;
+    clusters: Array<Cluster>;
 
     /**
      * Initialize the AI.
@@ -19,5 +19,5 @@ interface Network {
     /**
      * Run main loop in the game.
      */
-    run(): void;
+    run(): () => void;
 }

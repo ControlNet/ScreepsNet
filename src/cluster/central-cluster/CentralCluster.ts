@@ -8,11 +8,13 @@ import { ControllerNodeImpl } from "../../node/controller-node/ControllerNode";
 import _ from "lodash";
 import { CentralClusterMemoryType, CentralClusterType } from "./CentralClusterType";
 import { TopNodeTypes } from "../../node/NodeUtils";
+import { MemoryIO } from "../../extensions/memory/MemoryIO";
+import { ClusterNodeType } from "../../node/cluster-node/ClusterNodeType";
+import { SpawnNodeType } from "../../node/spawn-node/SpawnNodeType";
+import { ControllerNodeType } from "../../node/controller-node/ControllerNodeType";
+import { SourceNodeType } from "../../node/source-node/SourceNodeType";
 
 export class CentralClusterImpl extends ClusterBase implements CentralCluster {
-    constructor(name: string, home: Room, fromMemory: boolean = true) {
-        super(name, home, fromMemory);
-    }
 
     run(): void {
         // reconstruct nodes
@@ -22,7 +24,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
         this.scan();
 
         // run main loop
-        this.topNodes.forEach(each => each.run(this.type, this.stage))
+        this.topNodes.forEach(node => node.run(this.type, this.stage))
 
         // switch (this.stage) {
         //     case FOUNDING:
@@ -43,25 +45,25 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
     }
 
     protected reconstructNodes(): void {
-        Memory.get.all.nodes // get all nodes memory from Memory.
+        MemoryIO.get.all.nodes // get all nodes memory from Memory.
             // only filter the nodes belongs to this cluster
             .filter(nodeMemory => nodeMemory.clusterName === this.name)
             .map(nodeMemory => {
                 // reconstruct nodes from memory with specified types
                 switch (nodeMemory.type) {
-                    case "ClusterNode":
+                    case ClusterNodeType:
                         const clusterNode = ClusterNodeImpl.build.from(nodeMemory, this);
                         this.node = clusterNode;
                         return clusterNode;
-                    case "SpawnNode":
+                    case SpawnNodeType:
                         const spawnNode = SpawnNodeImpl.build.from(nodeMemory, this);
                         this.spawns.push(spawnNode);
                         return spawnNode;
-                    case "ControllerNode":
+                    case ControllerNodeType:
                         const controllerNode = ControllerNodeImpl.build.from(nodeMemory, this);
                         this.controller = controllerNode;
                         return controllerNode;
-                    case "SourceNode":
+                    case SourceNodeType:
                         const sourceNode = SourceNodeImpl.build.from(nodeMemory, this);
                         this.sources.push(sourceNode);
                         return sourceNode;
@@ -87,13 +89,14 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             // get all sources in the controlled room of this cluster
             .flatMap(room => room.find(FIND_SOURCES))
             // filter the un-labelled sources
-            .filter(source => !(source.id in this.sources.map(sourceNode => sourceNode.name)))
+            .filter(source => !this.sources.map(sourceNode => sourceNode.structure.id).includes(source.id))
             // for each source, construct a new SourceNode object,
             // add to the `this.nodes` and `this.sources`
             .forEach(source => {
                 const sourceNode = SourceNodeImpl.build.with(this, source);
                 this.add.node(sourceNode);
                 this.sources.push(sourceNode);
+                this.topNodes.push(sourceNode);
             })
 
         // scan controller
@@ -102,6 +105,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             const controllerNode = ControllerNodeImpl.build.with(this, this.home.controller);
             this.add.node(controllerNode);
             this.controller = controllerNode;
+            this.topNodes.push(controllerNode);
         }
 
         // scan spawn
@@ -109,13 +113,14 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             // get all my spawns in the controlled room of this cluster
             .flatMap(room => room.find(FIND_MY_SPAWNS))
             // filter the unlabelled spawns
-            .filter(spawn => !(spawn.name in this.spawns.map(spawnNode => spawnNode.name)))
+            .filter(spawn => !this.spawns.map(spawnNode => spawnNode.structure.name).includes(spawn.name))
             // for each spawn, construct a new SpawnNode object,
             // add to the `this.nodes` and `this.spawns`
             .forEach(spawn => {
-                const spawnNode = SpawnNodeImpl.build.with(spawn); // TODO: Not finished yet
+                const spawnNode = SpawnNodeImpl.build.with(this, spawn);
                 this.add.node(spawnNode);
                 this.spawns.push(spawnNode);
+                this.topNodes.push(spawnNode);
             })
     }
 
@@ -158,32 +163,41 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
     }
 
     static readonly build: Builder<CentralCluster> = {
-        with(name: string, home: Room): CentralCluster {
+        with(home: Room): CentralCluster {
+            const name = `${CentralClusterType}::${home.name}`;
+            const rooms = [home];
+
             // build new CentralCluster object.
-            return new CentralClusterImpl(name, home, false);
+            const obj = new CentralClusterImpl(name, home, {}, rooms, [], [], [],
+                []);
+
+            obj.controller = ControllerNodeImpl.build.with(obj, obj.home.controller!);
+            obj.node = ClusterNodeImpl.build.with(obj, obj.controller.structure);
+            obj.nodes[obj.node.name] = obj.node;
+            obj.topNodes.push(obj.node);
+
+            return obj;
         },
 
         from(memory: ClusterMemory<CentralClusterMemoryComplement>): CentralCluster {
             // name and home
-            const obj = new CentralClusterImpl(
+            return new CentralClusterImpl(
                 memory.name,
                 Game.rooms[memory.homeRoomName],
-                true
+                {},
+                memory.roomsNames.map(roomName => Game.rooms[roomName]),
+                memory.constructionSitesIds.map(id => Game.getObjectById(id)!),
+                [],
+                [],
+                []
             );
-
-            // rooms
-            obj.rooms.push(...memory.roomsNames.map(roomName => Game.rooms[roomName]));
-            // nodes will be added in the main loop process
-            // construction sites
-            obj.constructionSites.push(...memory.constructionSitesIds.map(id => Game.constructionSites[id]));
-            return obj;
         }
     };
 
     protected save(): void {
         const getName: (obj: any) => string = getByKey("name");
 
-        Memory.set.cluster<ClusterMemory<CentralClusterMemoryComplement>>(this.name).as({
+        MemoryIO.set.cluster<ClusterMemory<CentralClusterMemoryComplement>>(this.name).as({
             name: this.name,
             type: this.type,
             memoryType: CentralClusterMemoryType,
@@ -191,6 +205,7 @@ export class CentralClusterImpl extends ClusterBase implements CentralCluster {
             roomsNames: this.rooms.map(getName),
             nodesNames: _.keys(this.nodes),
             nodeName: this.node.name,
+            controllerName: this.controller.name,
             constructionSitesIds: this.constructionSites.map(getByKey("id")),
             others: {}
         });
